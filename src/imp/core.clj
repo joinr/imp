@@ -1,5 +1,6 @@
 (ns imp.core
-  (:require [proteus :as p]))
+  (:require [imp.patches]
+            [proteus :as p]))
 
 (defmacro dofor
   "Mimics the usage of for loops in imperative language, with some minor features:
