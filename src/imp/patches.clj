@@ -133,7 +133,7 @@
                  (map
                    (fn [k]
                      (vary-meta k merge
-                       {::read-form (vary-meta `(.x ~k) merge {:leaf true})
+                       {::read-form `(.x ~k)
                         ::write-form (fn [x] `(do (.set ~k ~x) nil))}))
                    ks)
                  (map (fn [v type] `(new ~(symbol type) ~v)) vs types))]
