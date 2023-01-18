@@ -42,5 +42,5 @@
   closed over, the current value will be captured.  Wherever possible, unboxed numbers are
   used, giving significantly better performance than `clojure.core/with-local-vars`."
   [bindings & body]
-  `(proteus.core/let-mutable ~bindings ~@body))
+  `(proteus/let-mutable ~bindings ~@body))
 
