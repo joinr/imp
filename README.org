@@ -1,0 +1,91 @@
+* imp
+
+This little library stemmed from a discussion on r/clojure and
+revisiting proteus.  I decided to spawn a little library to
+make translating imperative looping constructs a bit easier.
+
+To do so we leverage the proteus library (maintaining a limited
+fork to patch in nested mutables), and define a single macro 
+~imp.core/dofor~ .  ~imp.core/let-mutable~ wraps/redirects to
+~proteus/let-mutable~ with identical semantics.
+
+** Usage
+The API is open for revision, but generally we mimic
+the looping behaviors:
+
+Mimics the usage of for loops in imperative language, with some minor features:
+
+Given an arg vec of [idx ini pred [&optional [res rinit]]] where:
+
+- idx -> var to bind for the current numeric index
+- init -> initial value of idx
+- pred -> predicate to determine termination, typically based on idx
+- step -> expression to compute next idx, typically (inc idx) etc...
+- res -> optional, lexical var to define a collected result, will be
+         the return of the loop if supplied
+- rinit -> optional, initial value of res
+
+and a body expression, 
+
+Binds an implicit return function inside the loop context, where
+(return) stops looping and yields res, and (return x) stops looping
+and yields x.  Otherwise, we evaluate body and store the result in
+res if provided.
+
+
+#+BEGIN_SRC clojure
+(require '[imp.core :refer [let-mutable dofor]])
+
+(let-mutable [n 0]
+  (dofor [i 0 (< i 10) (inc i)]
+    (dofor [j 0 (< j 10) (inc j)]
+           (set! n (inc n))))
+  n)
+
+;;100
+
+(let-mutable [n 0]
+  (dofor [i 0 (< i 10) (inc i)]
+    (dofor [j 0 (< j 10) (inc j)]
+           (if (> n 10)
+             (return)
+             (do (set! n (inc n))
+                 n))))
+  n)
+;;11
+(let-mutable [n 0]
+  (dofor [i 0 (< i 10) (inc i)]
+     (dofor [j 0 (< j 10) (inc j)]
+            (if (> n 10)
+              (return n)
+              (do (set! n (inc n))
+                  n)))))
+;;11
+
+;;a little janky for the moment, will look at a smoothe api for implicit
+;;bindings and returns.
+(dofor [i 0 (< i 10) (inc i) res 0]
+   (set! res
+      (dofor [j 0 (< j 10) (inc j) acc res]
+         (set! acc (inc acc))
+         acc))
+   res)
+;;100
+#+END_SRC
+
+FIXME
+
+** License
+
+Copyright © 2023 joinr
+
+This program and the accompanying materials are made available under the
+terms of the Eclipse Public License 2.0 which is available at
+http://www.eclipse.org/legal/epl-2.0.
+
+This Source Code may also be made available under the following Secondary
+Licenses when the conditions for such availability set forth in the Eclipse
+Public License, v. 2.0 are satisfied: GNU General Public License as published by
+the Free Software Foundation, either version 2 of the License, or (at your
+option) any later version, with the GNU Classpath Exception which is available
+at https://www.gnu.org/software/classpath/license.html.
